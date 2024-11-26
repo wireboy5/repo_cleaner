@@ -1,12 +1,10 @@
 use std::{collections::HashMap, fs::File, path::PathBuf, time::Duration};
 
 use clap::{command, Parser};
-use color_eyre::Section;
 use eyre::{Context, Result};
 use git2::Repository;
 use indicatif::ProgressBar;
-use thiserror::Error;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use tracing::{info, level_filters::LevelFilter, warn};
 
 
@@ -51,9 +49,6 @@ struct Config {
 
 }
 
-#[derive(Debug, Error)]
-#[error("{0}")]
-struct StringError(String);
 
 fn main() -> Result<()> {
     color_eyre::install()?;
@@ -111,6 +106,13 @@ fn main() -> Result<()> {
 
             println!("{:?}", repository.remotes().map(|v| v.iter().filter_map(|v| v.map(|v| v.to_owned())).collect::<Vec<_>>()));
             
+            info!("Backing up repository");
+
+            let backup_file = File::create(backups.join(repo.clone()).with_extension("tar"))?;
+            let mut backup_tar = tar::Builder::new(backup_file);
+            backup_tar.append_dir_all(".", repos.join(repo.clone()))?;
+            drop(backup_tar);
+
             spin.finish_with_message(format!("Finished processing {repo}"));
         }
     } else {
