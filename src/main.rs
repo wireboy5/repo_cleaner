@@ -6,7 +6,7 @@ use git2::{ErrorCode, Repository};
 use git2_credentials::CredentialHandler;
 use indicatif::ProgressBar;
 use serde::{Deserialize, Serialize};
-use tracing::{info, level_filters::LevelFilter, warn};
+use tracing::{error, info, level_filters::LevelFilter, warn};
 
 
 
@@ -287,6 +287,17 @@ return name"#,
             let repo_dir = repo_dir.as_path();
 
             info!("Force pushing {repo}");
+
+            // Run fsck
+            let fsck = Command::new("git")
+                .args(["fsck", "--full", "--strict"])
+                .current_dir(repo_dir)
+                .output()
+                .expect("if one git command fails, it's likely every git command will fail").status;
+
+            if !fsck.success() {
+                error!("FSCK failed on repository {repo}. This repository will not be force pushed, as there is a chance the repo cleaning may have damaged the commit history. Manual review and pushing may be required. Use the command `git push --all --force` once you have confirmed that the repository's history is intact, or have fixed the issues.");
+            }
             
             Command::new("git")
                 .args(["push", "--all", "--force"])
