@@ -10,7 +10,7 @@ use tracing::{error, info, level_filters::LevelFilter, warn};
 
 
 
-/// Simple tool to clean emails from the patches of a given lsit of git repositories.
+/// Simple tool to clean emails from the patches of a given list of git repositories.
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
@@ -19,11 +19,11 @@ struct Args {
     /// This should be a JSON file in the following format:
     /// {
     ///     "repositories": ["Org/reponame"...],
-    ///     "substitutions": {
-    ///         "email@example.com": {
-    ///             "new_email": "another_email@example.com",
-    ///             "new_author": "Author Name"
-    ///         }
+    ///     "email_substitutions": {
+    ///         "email@example.com": "another_email@example.com"
+    ///      },
+    ///     "name_substitutions": {
+    ///         "Some Name Regex": "New Name"
     ///     }
     /// }
     config: PathBuf,
@@ -31,7 +31,7 @@ struct Args {
     #[arg(long)]
     commit: bool,
     /// Set this flag to sign all commits with your default GPG signing key.
-    /// WARNING: This will sign *every* commit, including those not made by you!
+    /// WARNING: This will sign *every* commit, including those not made by you! This only works on single-branch repositories.
     #[arg(long)]
     sign: bool,
 }
